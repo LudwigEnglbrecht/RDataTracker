@@ -15,15 +15,16 @@
 #   License along with this program.  If not, see
 #   <http://www.gnu.org/licenses/>.
 
-######################## Exported Functions ########################
+############################ API.R #############################
 
-# The following functions are exported:
+# This file contains files that are exported:
 
 # prov.init - intializes a new provenance graph
 # prov.save - saves the current provenance graph
 # prov.quit - saves the current provenance graph and finalizes it
 # prov.run - initiates execution of a script
 # prov.json - returns the current provenance graph as a prov-json string
+
 
 #' Provenance Collection Functions
 #' 
@@ -733,12 +734,13 @@ prov.run <- function(r.script.path = NULL, prov.dir = NULL, overwrite = TRUE,
 #' The user can also search for specific
 #' data or operation nodes, files, or error messages in the provenance.
 #' 
-#' @return prov.json returns the current provenance graph as a prov-json.
+#' @return prov.json returns the current provenance graph as a prov-json
 #' string
 #' @export
 #' @rdname prov.json
 #' @seealso \code{\link{prov.init}} and \code{\link{prov.run}} for functions to collect provenance
 #' @references PROV-JSON standard: \url{https://www.w3.org/Submission/2013/SUBM-prov-json-20130424/}
+#' @references RDataTracker PROV-JSON output: \url{https://github.com/End-to-end-provenance/RDataTracker/blob/export/JSON-format.md}
 #' @examples
 #' prov.init ()
 #' a <- 1

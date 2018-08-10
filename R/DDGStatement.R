@@ -15,18 +15,13 @@
 #   License along with this program.  If not, see
 #   <http://www.gnu.org/licenses/>.
 
-############################ DDGStatement.R #############################
+########################## DDGStatement.R ############################
 
 # This file contains definitions of S4 classes to manage information about
 # individual R statements and functions that operate on individual statements
 #
 # All of these functions are internal to the RDataTracker library and
 # not called from user code.
-#
-# Author: blerner
-# August 2016
-#
-#########################################################################
 
 # Needed to work with S4 classes.  Normally, this library is automatically
 # loaded.  However, it is not loaded when running non-interactively, as
@@ -490,7 +485,7 @@ methods::setMethod ("initialize",
       # Operators also pass the is.name test.  Make sure that if it is a
       # single character, then it is alpha-numeric.
       if (nchar(obj) == 1 && !grepl("[[:alpha:]]", obj)) return (character())
-      #print(paste(".ddg.find.var.uses found", deparse(obj)))
+      # print(paste(".ddg.find.var.uses found name", deparse(obj)))
       return (deparse(obj))
     }
 
@@ -522,9 +517,10 @@ methods::setMethod ("initialize",
 
             # for array index cases like a[b] <- 3,
             # where there could be a variable in the brackets
-            if( obj[[2]][[1]] == "[" )
-              append( variables, .ddg.find.var.uses.rec(obj[[2]][[3]]) )
-
+            if( obj[[2]][[1]] == "[" || obj[[2]][[1]] == "[[" ) {
+              variables <- c( variables, unlist (.ddg.find.var.uses.rec(obj[[2]][[3]]) ))
+            }
+            
             unique( variables )
           }
 
@@ -545,12 +541,13 @@ methods::setMethod ("initialize",
         # Not an assignment.  Recurse on all parts of the expression
         # except the operator.
         else {
-          unique(unlist(lapply(obj[1:length(obj)], .ddg.find.var.uses.rec)))
+          unique(unlist(lapply(obj[2:length(obj)], .ddg.find.var.uses.rec)))
         }
       },
       error = function(e)
       {
         print (paste(".ddg.find.var.uses.rec:  Error analyzing", deparse(obj)))
+        print (e)
         character()
       }
     )
