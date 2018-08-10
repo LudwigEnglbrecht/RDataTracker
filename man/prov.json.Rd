@@ -11,7 +11,7 @@ prov.display()
 }
 \value{
 prov.json returns the current provenance graph as a prov-json
-string.
+string
 
 prov.display loads and displays the current provenance graph
 in DDG Explorer. The prov.display function does not return a value.
@@ -46,12 +46,6 @@ ab <- a + b
 prov.quit ()
 str <- prov.json()
 \dontrun{prov.display()} 
-}
-\references{
-PROV-JSON standard: \url{https://www.w3.org/Submission/2013/SUBM-prov-json-20130424/}
-}
-\seealso{
-\code{\link{prov.init}} and \code{\link{prov.run}} for functions to collect provenance
 }
 \references{
 PROV-JSON standard: \url{https://www.w3.org/Submission/2013/SUBM-prov-json-20130424/}
