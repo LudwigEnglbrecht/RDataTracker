@@ -58,14 +58,40 @@
                          outs.exception=NULL, outs.url=NULL, outs.file=NULL, 
                          graphic.fext="jpeg") {
   #print("In .ddg.function")
-  if (!.ddg.is.init()) return(invisible())
+  if (!.ddg.is.init())
+  	return(invisible())
   
   .ddg.inc("ddg.func.depth")
   pname <- NULL
-  .ddg.lookup.function.name(pname)
-    
+  
+  
+  # EF EDITS
+	# lookup caller.frame - parameters are not passed in when using trace!
+	# todo: pull out getting caller.frame code?
+	calls <- sys.calls()
+	calls <- mapply( `[[` , calls , 1 , SIMPLIFY = TRUE )
+	
+	caller.frame <- which( calls == ".doTrace" )
+	
+	if( length(caller.frame) > 0 )
+	{
+		caller.frame = caller.frame - 1 
+		call <- sys.call(caller.frame)
+		pname <- as.character(call[[1]])
+	}
+	else
+	{
+		call <- NA
+		pname <- NA
+	}
+  
+  
+  # EF EDITS - comment out
+  #.ddg.lookup.function.name(pname)
+  
+  # EF EDITS - comment out
   # Look up input parameters from calling environment.
-  call <- sys.call(-1)
+  #call <- sys.call(-1)
   
   # Try to find the full call so that we can bind the parameters
   # by name in the DDG.  In the case that the function being executed
@@ -73,8 +99,17 @@
   # called from the context (for example, with lapply and other higher-order
   # functions), the match.call will fail.  In that case, we will use the
   # call as it appears in side the higher-order function.
-  full.call <- tryCatch (match.call(sys.function(-1), call=call),
-      error = function(e) call)
+  
+  # EF EDITS
+  #full.call <- tryCatch (match.call(sys.function(-1), call=call),
+  #    error = function(e) call)
+  full.call <- tryCatch( match.call(sys.function(caller.frame), call=call),
+  											 error = function(e) call )
+  
+  # EF EDITS
+	print( "in Annotation_rdt.R - .ddg.function: call =" )
+	print( call )
+  
   
   # Create start node for the calling statement if one is not already created.
   .ddg.create.start.for.cur.cmd (call)
