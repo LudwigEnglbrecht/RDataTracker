@@ -140,7 +140,29 @@
   
   #print("In .ddg.return.value")
   
+  
+  # EF EDITS
+  # parameters are NOT passed in when using trace
+	# TODO: must remember to remove parameters when it works!
+	calls <- sys.calls()
+	calls <- mapply( `[[` , calls , 1 , SIMPLIFY = TRUE )
+  caller.frame <- which( calls == ".doTrace" )
+  
+  
   parsed.stmt <- NULL
+  
+  
+  # EF EDITS
+  pname <- NULL
+  
+  if( length(caller.frame) > 0 )
+	{
+		caller.frame = caller.frame - 1
+		
+		parsed.stmt <- sys.call(caller.frame)
+		pname <- as.character(parsed.stmt[[1]])
+	}
+  
   
   if (!is.null(cmd.func)) {
     parsed.stmt <- cmd.func()
@@ -156,23 +178,58 @@
   
   orig.return <- paste("return(", deparse(orig.expr), ")", sep="")
   
-  pname <- NULL
+  
+  # EF EDITS - comment out
+  #pname <- NULL
+  
+  
   .ddg.lookup.function.name(pname)
   #print(paste(".ddg.return.value: pname =", pname))
   
+  
+  # EF EDITS
+  # If this is not a recursive call to ddg.return.value and
+	# ddg.function was not called, create the function nodes that
+	# it would have created.
+	call <- sys.call(caller.frame)
+
+	if (!.ddg.proc.node.exists(pname))
+	{
+		full.call <- match.call(sys.function(caller.frame), call=call)
+		.ddg.create.function.nodes(pname, call, full.call, env = sys.frame(.ddg.get.frame.number(sys.calls())))
+	}
+	else
+	{
+		#print("ddg.return.value decrementing func.depth")
+		.ddg.dec (".ddg.func.depth")
+	}
+
+	if (is.null(cmd.func))
+	{
+		orig.return <- "return()"
+		return.stmt <- .ddg.construct.DDGStatement (parse(text=orig.return), pos=NA, script.num=NA)
+	}
+	else
+	{
+		return.stmt <- cmd.func()
+		parsed.statement <- return.stmt@parsed
+	}
+  
+  
+  # EF EDITS - comment out
   # If this is a recursive call to .ddg.return.value, find
   # the caller of the first .ddg.return.value
-  if (grepl("^ddg|^.ddg|^prov", pname)) {
-    #print(".ddg.return.value: Found a recursive call")
-    caller.frame <- .ddg.find.ddg.return.value.caller.frame.number ()
-    pname <- as.character(sys.call(caller.frame)[[1]])
-    #print(paste(".ddg.return.value: updated pname =", pname))
-  }
-  else {
-    #print(".ddg.return.value: NOT a recursive call")
-    caller.frame <- -1
-  }
-  
+  #if (grepl("^ddg|^.ddg|^prov", pname)) {
+  #  #print(".ddg.return.value: Found a recursive call")
+  #  caller.frame <- .ddg.find.ddg.return.value.caller.frame.number ()
+  #  pname <- as.character(sys.call(caller.frame)[[1]])
+  #  #print(paste(".ddg.return.value: updated pname =", pname))
+  #}
+  #else {
+  #  #print(".ddg.return.value: NOT a recursive call")
+  #  caller.frame <- -1
+  #}
+  #
   # Prints the call & arguments.
   # expr forces evaluation of the function early.  I think that
   # causes some examples to work with debugging on but not off.
@@ -180,45 +237,49 @@
   # Yes, ReturnTest.R fails on the recursive f5 function
   #print(paste(".ddg.return.value:", sys.call(caller.frame))) #, "returns", 
   #            expr))
-  
+  #
   # If this is not a recursive call to .ddg.return.value and
   # .ddg.function was not called, create the function nodes that
   # it would have created.
-  call <- sys.call(caller.frame)
-  if (!.ddg.proc.node.exists(pname)) {
-    #print(".ddg.return.value creating function nodes")
-    full.call <- match.call(sys.function(caller.frame), call=call)
-    .ddg.create.function.nodes(pname, call, full.call, 
-                               env = sys.frame(.ddg.get.frame.number(sys.calls()))
-    )
-  }
-  else {
-    #print(".ddg.return.value decrementing func.depth")
-    .ddg.dec ("ddg.func.depth")
-  }
-  
-  if (is.null(cmd.func)) {
-    #print(".ddg.return.value constructing DDG statement for the return call")
-    return.stmt <- .ddg.construct.DDGStatement (parse(text=orig.return), 
-                                                pos=NA, script.num=NA)
-  }
-  else {
-    #print(".ddg.return.value using existing DDG statement for the return call")
-    return.stmt <- cmd.func()
-  }
+  #call <- sys.call(caller.frame)
+  #if (!.ddg.proc.node.exists(pname)) {
+  #  #print(".ddg.return.value creating function nodes")
+  #  full.call <- match.call(sys.function(caller.frame), call=call)
+  #  .ddg.create.function.nodes(pname, call, full.call, 
+  #                             env = sys.frame(.ddg.get.frame.number(sys.calls()))
+  #  )
+  #}
+  #else {
+  #  #print(".ddg.return.value decrementing func.depth")
+  #  .ddg.dec ("ddg.func.depth")
+  #}
+  #
+  #if (is.null(cmd.func)) {
+  #  #print(".ddg.return.value constructing DDG statement for the return call")
+  #  return.stmt <- .ddg.construct.DDGStatement (parse(text=orig.return), 
+  #                                              pos=NA, script.num=NA)
+  #}
+  #else {
+  #  #print(".ddg.return.value using existing DDG statement for the return call")
+  #  return.stmt <- cmd.func()
+  #}
   
   # Create a data node for the return value. We want the scope of
   # the function that called the function that called ddg.return.
   call.text <- gsub(" ", "", deparse(call, nlines=1))
   return.node.name <- paste(call.text, "return")
   
-  #print(paste(".ddg.return.value: sys.nframe =", sys.nframe()))
-  #print(paste(".ddg.return.value: caller.frame =", caller.frame))
   return.node.scope <-
       environmentName (if (sys.nframe() == 2) .GlobalEnv
               else parent.env(sys.frame(caller.frame)))
-  #print(paste(".ddg.return.value: return.node.scope =", return.node.scope))
+  
   .ddg.save.data(return.node.name, expr, scope=return.node.scope)
+  
+  
+  # EF EDITS
+  # Create a return proc node
+	caller.env = sys.frame(caller.frame)
+  
   
   # Check if there is a return call within this call to ddg.return.
   if (.ddg.has.call.to(parsed.stmt, "return")) {
@@ -274,19 +335,33 @@
     }
     
     
+    # EF EDITS - need to check this to see if there is unnecessary code
     # Create nodes and edges dealing with reading and writing files
     .ddg.create.file.read.nodes.and.edges()
     .ddg.create.file.write.nodes.and.edges ()
     .ddg.create.graphics.nodes.and.edges ()
-    
   }
   
+  
+  # EF EDITS
+  # Create the finish node for the function
+	if (typeof(call[[1]]) == "closure") {
+		.ddg.add.finish.node (node.name=pname)
+	}
+	else {
+		.ddg.add.finish.node (node.name=paste(deparse(call),collapse=""))
+	}
+
+	return(returnValue())
+  
+  
+  # EF EDITS - comment out
   # Create the finish node for the function
   #print(".ddg.return.value: creating finish node")
-  .ddg.add.finish.node()
-  
-  #print(paste (".ddg.return.value: returning", expr))
-  return(expr)
+  #.ddg.add.finish.node()
+  #
+  ##print(paste (".ddg.return.value: returning", expr))
+  #return(expr)
 }
 
 #' .ddg.find.ddg.return.value.caller.frame.number returns the frame
