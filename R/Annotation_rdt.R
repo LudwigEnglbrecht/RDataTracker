@@ -804,26 +804,28 @@ prov.annotate.off <- function (fnames.off=NULL) {
   # Create new function body with an if-then statement for annotations.
   func.definition <- .ddg.add.conditional.statement(func.definition, func.name)
   
+  
+  # EF EDITS - comment out
   # Insert call to .ddg.function if not already added.
-  if (!.ddg.has.call.to(func.definition[[3]], ".ddg.function")) {
-    func.definition <- .ddg.insert.ddg.function(func.definition)
-  }
-  
-  # Insert calls to .ddg.return.value if not already added.
-  if (!.ddg.has.call.to(func.definition[[3]], ".ddg.return.value")) {
-    func.definition <- .ddg.wrap.all.return.parameters(func.definition, 
-                                                       function.decl@contained)
-  }
-  
+  #if (!.ddg.has.call.to(func.definition[[3]], ".ddg.function")) {
+  #  func.definition <- .ddg.insert.ddg.function(func.definition)
+  #}
+  #
+  ## Insert calls to .ddg.return.value if not already added.
+  #if (!.ddg.has.call.to(func.definition[[3]], ".ddg.return.value")) {
+  #  func.definition <- .ddg.wrap.all.return.parameters(func.definition, 
+  #                                                     function.decl@contained)
+  #}
+  #
   # Wrap last statement with .ddg.return.value if not already added
   # and if last statement is not a simple return or a ddg function.
-  last.statement <- .ddg.find.last.statement(func.definition)
-  
-  if (!.ddg.is.call.to(last.statement, ".ddg.return.value") & 
-      !.ddg.is.call.to(last.statement, "return") & 
-      !.ddg.is.call.to.ddg.function(last.statement)) {
-    func.definition <- .ddg.wrap.last.line(func.definition, function.decl@contained)
-  }
+  #last.statement <- .ddg.find.last.statement(func.definition)
+  #
+  #if (!.ddg.is.call.to(last.statement, ".ddg.return.value") & 
+  #    !.ddg.is.call.to(last.statement, "return") & 
+  #    !.ddg.is.call.to.ddg.function(last.statement)) {
+  #  func.definition <- .ddg.wrap.last.line(func.definition, function.decl@contained)
+  #}
   
   # Wrap statements with .ddg.eval if not already added and if
   # statements are not calls to a ddg function and do not contain
