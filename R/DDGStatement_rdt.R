@@ -22,10 +22,13 @@
 # within functions.
 setClass("RDTStatement",
     slots = list(
-        contained = "list"         # If this is a function declaration, this will 
+        contained = "list",        # If this is a function declaration, this will 
                                    # be a list of DDGStatement objects for the 
                                    # statements it contains.
-        ),
+        # EF EDITS
+        is.function.binding = "logical",  # True if this is a function declaration and assignment
+        function.name = "character",      # The name of the variable this function declaration is assigned to.
+    ),
     contains = "DDGStatement")
 
 # This is called when a new RDTStatement is created.  It initializes all of the slots.
@@ -39,6 +42,17 @@ methods::setMethod ("initialize",
           # provenance inside functions or control statements, we will execute
           # annotated versions of these statements.
           .ddg.parse.contained(.Object, script.name, parseData)
+      
+      
+      # EF EDITS
+    	.Object@is.function.binding <- .ddg.is.assign(parsed[[1]]) && .ddg.is.functiondecl(parsed[[1]][[3]])
+    
+    	if( .Object@is.function.binding )
+      	.Object@function.name <- toString(parsed[[1]][[2]])
+    	else
+     		.Object@function.name <- ""
+      
+      
       
       .Object@annotated <-
           # If this is a call to .ddg.eval, we only want to execute
