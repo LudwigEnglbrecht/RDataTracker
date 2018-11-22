@@ -920,6 +920,8 @@ prov.annotate.off <- function (fnames.off=NULL) {
   return(call("function", func.params, as.call(func.body)))
 }
 
+
+# EF EDITS -  should not be called!
 #' .ddg.wrap.return.parameters wraps parameters of return functions
 #' with .ddg.return.value in the annotated block of a function body.
 #'
@@ -931,86 +933,87 @@ prov.annotate.off <- function (fnames.off=NULL) {
 #' a call to .ddg.return.value wrapped around all expressions that are
 #' returned.
 #' @noRd
+#
+#.ddg.wrap.return.parameters <- function(block, parsed.stmts) {
+#  # Check each statement in the annotated block to see if it
+#  # contains a return.
+#  pos <- length(block)
+#  #print(paste(".ddg.wrap.return.parameters: pos =", pos))
+#  
+#  for (i in 1:pos) {
+#    statement <- block[[i]]
+#    #print(paste("statement", i, "=", deparse(statement)))
+#    #print(paste("parsed.stmts", i, "=", parsed.stmts[[i]]@abbrev))
+#    if (.ddg.has.call.to(statement, "return")) {
+#      
+#      #print(".ddg.wrap.return.parameters: found return call")
+#      
+#      # If statement is a return, wrap parameters with .ddg.return.value.
+#      if (.ddg.is.call.to(statement, "return")) {
+#        #print(".ddg.wrap.return.parameters:  IS a return call")
+#        # Need to handle empty parameter separately.
+#        if (length(statement) == 1) {
+#          ret.params <- ""
+#        } else {
+#          ret.params <- statement[[2]]
+#        }
+#        
+#        #print(paste(".ddg.wrap.return.parameters: ret.params =", ret.params))
+#        
+#        #for (i in 1:length(parsed.stmts)) {
+#        #  print(paste(".ddg.wrap.return.parameters: parsed.stmts =", 
+#        #              parsed.stmts[[i]]@abbrev))
+#        #}
+#        if (is.list(parsed.stmts)) {
+#          #print(".ddg.wrap.return.parameters: parsed.stmts is a list")
+#          #print(paste("str(parsed.stmts) =", str(parsed.stmts)))
+#          parsed.stmt <- parsed.stmts[[i-2]]
+#        }
+#        else {
+#          #print(".ddg.wrap.return.parameters: parsed.stmts is NOT a list")
+#          #print(paste("str(parsed.stmts) =", str(parsed.stmts)))
+#          parsed.stmt <- parsed.stmts
+#        }
+#        
+#        #print(paste(".ddg.wrap.return.parameters: parsed.stmt =", parsed.stmt@abbrev))
+#        
+#        # If parameters contain a return, recurse on parameters.
+#        if (.ddg.has.call.to(ret.params, "return")) {
+#          ret.params <- .ddg.wrap.return.parameters(ret.params, parsed.stmt)
+#        }
+#        
+#        new.ret.params <- .ddg.create.ddg.return.call(ret.params, parsed.stmt)
+#        new.statement <- call("return", new.ret.params)
+#        block[[i]] <- new.statement
+#        
+#        # If statement contains a return, recurse on statement.
+#      } else {
+#        #print(".ddg.wrap.return.parameters:  CONTAINS a return call")
+#        if (is.list(parsed.stmts)) {
+#          #print(".ddg.wrap.return.parameters: parsed.stmts is a list")
+#          #print(paste("str(parsed.stmts) =", str(parsed.stmts)))
+#          #print(paste("@contained[[1]] =", parsed.stmts[[1]]@contained[[1]]@text))
+#          parsed.stmt <- parsed.stmts[[i-2]]
+#        }
+#        else {
+#          #print(".ddg.wrap.return.parameters: parsed.stmts is NOT a list")
+#          #parsed.stmt <- parsed.stmts@contained[[i-2]]
+#          parsed.stmt <- parsed.stmts
+#        }
+#        
+#        #print("Recursing")
+#        #print(paste("Passing for parsed.stmt:", str(parsed.stmt)))
+#        block[[i]] <- .ddg.wrap.return.parameters(statement, parsed.stmt)
+#        #print("Returned from recursion")
+#      }
+#    }
+#    #print(paste(".ddg.wrap.return.parameters: after annotation, block[[", i, 
+#    #            "]] =", paste(deparse(block[[i]]), collapse="\n")))
+#  }
+#  
+#  return(block)
+#}
 
-.ddg.wrap.return.parameters <- function(block, parsed.stmts) {
-  # Check each statement in the annotated block to see if it
-  # contains a return.
-  pos <- length(block)
-  #print(paste(".ddg.wrap.return.parameters: pos =", pos))
-  
-  for (i in 1:pos) {
-    statement <- block[[i]]
-    #print(paste("statement", i, "=", deparse(statement)))
-    #print(paste("parsed.stmts", i, "=", parsed.stmts[[i]]@abbrev))
-    if (.ddg.has.call.to(statement, "return")) {
-      
-      #print(".ddg.wrap.return.parameters: found return call")
-      
-      # If statement is a return, wrap parameters with .ddg.return.value.
-      if (.ddg.is.call.to(statement, "return")) {
-        #print(".ddg.wrap.return.parameters:  IS a return call")
-        # Need to handle empty parameter separately.
-        if (length(statement) == 1) {
-          ret.params <- ""
-        } else {
-          ret.params <- statement[[2]]
-        }
-        
-        #print(paste(".ddg.wrap.return.parameters: ret.params =", ret.params))
-        
-        #for (i in 1:length(parsed.stmts)) {
-        #  print(paste(".ddg.wrap.return.parameters: parsed.stmts =", 
-        #              parsed.stmts[[i]]@abbrev))
-        #}
-        if (is.list(parsed.stmts)) {
-          #print(".ddg.wrap.return.parameters: parsed.stmts is a list")
-          #print(paste("str(parsed.stmts) =", str(parsed.stmts)))
-          parsed.stmt <- parsed.stmts[[i-2]]
-        }
-        else {
-          #print(".ddg.wrap.return.parameters: parsed.stmts is NOT a list")
-          #print(paste("str(parsed.stmts) =", str(parsed.stmts)))
-          parsed.stmt <- parsed.stmts
-        }
-        
-        #print(paste(".ddg.wrap.return.parameters: parsed.stmt =", parsed.stmt@abbrev))
-        
-        # If parameters contain a return, recurse on parameters.
-        if (.ddg.has.call.to(ret.params, "return")) {
-          ret.params <- .ddg.wrap.return.parameters(ret.params, parsed.stmt)
-        }
-        
-        new.ret.params <- .ddg.create.ddg.return.call(ret.params, parsed.stmt)
-        new.statement <- call("return", new.ret.params)
-        block[[i]] <- new.statement
-        
-        # If statement contains a return, recurse on statement.
-      } else {
-        #print(".ddg.wrap.return.parameters:  CONTAINS a return call")
-        if (is.list(parsed.stmts)) {
-          #print(".ddg.wrap.return.parameters: parsed.stmts is a list")
-          #print(paste("str(parsed.stmts) =", str(parsed.stmts)))
-          #print(paste("@contained[[1]] =", parsed.stmts[[1]]@contained[[1]]@text))
-          parsed.stmt <- parsed.stmts[[i-2]]
-        }
-        else {
-          #print(".ddg.wrap.return.parameters: parsed.stmts is NOT a list")
-          #parsed.stmt <- parsed.stmts@contained[[i-2]]
-          parsed.stmt <- parsed.stmts
-        }
-        
-        #print("Recursing")
-        #print(paste("Passing for parsed.stmt:", str(parsed.stmt)))
-        block[[i]] <- .ddg.wrap.return.parameters(statement, parsed.stmt)
-        #print("Returned from recursion")
-      }
-    }
-    #print(paste(".ddg.wrap.return.parameters: after annotation, block[[", i, 
-    #            "]] =", paste(deparse(block[[i]]), collapse="\n")))
-  }
-  
-  return(block)
-}
 
 #' .ddg.wrap.all.return.parameters wraps parameters of all return
 #' functions with .ddg.return.value in the annotated block of a function
