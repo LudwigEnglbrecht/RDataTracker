@@ -1014,7 +1014,7 @@ prov.annotate.off <- function (fnames.off=NULL) {
 #  return(block)
 #}
 
-
+# EF EDITS - should not be called!
 #' .ddg.wrap.all.return.parameters wraps parameters of all return
 #' functions with .ddg.return.value in the annotated block of a function
 #' definition.
@@ -1026,26 +1026,27 @@ prov.annotate.off <- function (fnames.off=NULL) {
 #' a call to .ddg.return.value wrapped around all expressions that are
 #' returned.
 #' @noRd
+#
+#.ddg.wrap.all.return.parameters <- function(func.definition, parsed.stmts) {
+#  # Get function parameters.
+#  func.params <- func.definition[[2]]
+#  
+#  # Get the body of the function.
+#  func.body <- func.definition[[3]]
+#  
+#  # Get annotated block.
+#  block <- func.body[[2]][[3]]
+#  
+#  # Wrap individual return functions.
+#  block <- .ddg.wrap.return.parameters(block, parsed.stmts)
+#  
+#  # Get new function body
+#  func.body[[2]][[3]] <- block
+#  
+#  # Reconstruct function.
+#  return(call("function", func.params, as.call(func.body)))
+#}
 
-.ddg.wrap.all.return.parameters <- function(func.definition, parsed.stmts) {
-  # Get function parameters.
-  func.params <- func.definition[[2]]
-  
-  # Get the body of the function.
-  func.body <- func.definition[[3]]
-  
-  # Get annotated block.
-  block <- func.body[[2]][[3]]
-  
-  # Wrap individual return functions.
-  block <- .ddg.wrap.return.parameters(block, parsed.stmts)
-  
-  # Get new function body
-  func.body[[2]][[3]] <- block
-  
-  # Reconstruct function.
-  return(call("function", func.params, as.call(func.body)))
-}
 
 #' .ddg.find.last.statement finds the last statement in the annotated
 #' block of a function.
