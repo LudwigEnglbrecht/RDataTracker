@@ -28,6 +28,11 @@
 #' @noRd
 
 .ddg.create.start.for.cur.cmd <- function (call) {
+  
+  # EF EDITS
+  print( ".ddg.create.start.for.cur.cmd: call =" )
+  print(call)
+  
   if (!.ddg.is.set("ddg.cur.cmd")) return ()
   
   ddg.cur.cmd.stack <- .ddg.get("ddg.cur.cmd.stack")
@@ -101,6 +106,67 @@
   .ddg.set ("ddg.cur.cmd.stack", c(ddg.cur.cmd.stack[1:stack.length-1], value))
 }
 
+
+# EF EDITS: THERE HAS TO BE A BETTER WAY TO DO THIS!
+.ddg.lookup.function.name <- gtools::defmacro (pname, trace = FALSE, 
+  expr =
+  {
+    #print(paste("pname =", pname))
+    #print(paste("trace =", trace))
+    
+    if( trace && is.null(pname) ) # there must be a better way to write the conditionals
+    {
+      # from Barbara's findTracedCall function
+      calls <- sys.calls()
+      #print(calls)
+      
+      calls <- mapply( `[[` , calls , 1 , SIMPLIFY = TRUE )
+      #print(calls)
+      #calls <- mapply( `[[` , calls , 1 )
+      #print(calls)
+      
+      doTraceIndex <- which( calls == ".doTrace" )
+      
+      if( length(doTraceIndex) > 0 )
+        pname <- as.character(sys.call( doTraceIndex - 1 )[[1]])
+      else
+        pname <- NA
+    }
+    
+    # If pname is not provided, get from function call.
+    else if (is.null(pname)) 
+    { 
+      #print(".ddg.lookup.function.name: sys.calls() =")
+      #print(sys.calls())
+      
+      # Look up function call.
+      call <- sys.call(-4)
+      
+      # Discard everything after left parenthesis to get
+      # function name.
+      
+      # pname <- strsplit (as.character(call), "\\(")[[1]][1]
+      #print(paste(".ddg.lookup.function.name: typeof(call[[1]] =", typeof(call[[1]])))
+      #print(paste(".ddg.lookup.function.name: str(call[[1]] =", str(call[[1]])))
+      # If the call uses a closure rather than a function name, we will
+      # call the name FUN.
+      if (typeof(call[[1]]) == "closure") {
+        #print(".ddg.lookup.function.name:  Found a closure!")
+        pname <- "FUN"
+      }
+      else {
+        pname <- as.character(call[[1]])
+      }
+    }
+    
+    # Convert pname to a string if necessary.
+    else if (!is.character(pname)) {
+      pname <- deparse(substitute(pname))
+    }
+  }
+)
+
+
 #' .ddg.create.function.nodes creates the start node, procedure node, input
 #' binding nodes, and output nodes for the function.
 #' @param pname name of procedure node.
@@ -124,13 +190,28 @@
 .ddg.create.function.nodes <- function(pname, call, full.call, outs.graphic=NULL, 
     outs.data=NULL, outs.exception=NULL, 
     outs.url=NULL, outs.file=NULL, 
-    graphic.fext="jpeg", env=NULL) {
+    graphic.fext="jpeg", env=NULL)
+{
+  
+  # EF EDITS
+  print( "in .ddg.create.function.nodes" )
+  print( "full.call:" )
+  print(full.call)
+  
   # Create the start node
   if (typeof(call[[1]]) == "closure") {
+    
+    # EF EDITS
+    print("is a closure")
+    
     #print(paste(".ddg.create.function.nodes: pname =", pname))
     .ddg.add.start.node (node.name=pname)
   }
   else {
+    
+    # EF EDITS
+    print("is not a closure")
+    
     #print(paste(".ddg.create.function.nodes: deparse(call) =", deparse(call)))
     .ddg.add.start.node (node.name=paste(deparse(call), collapse=""))
   }
@@ -181,6 +262,9 @@
           .ddg.proc.node("Binding", binding.node.name)
           .ddg.proc2proc()
           
+          # EF EDITS
+          varsUsed <<- vars.used
+          
           # Add an input to the binding node for each variable referenced in the argument
           sapply (vars.used, function (var) {
                 param.scope <- .ddg.get.scope(var, for.caller = TRUE, calls=stack)
@@ -208,34 +292,38 @@
         })
   }
   
+  # EF EDITS
+  print( "pname:" )
+  print(pname)
   .ddg.proc.node("Operation", pname, pname)
+  .ddg.proc2proc()
   
   # Link to the definition of the function if the function is defined in this script.
   if (.ddg.data.node.exists(pname, environmentName(.GlobalEnv))) {
     .ddg.data2proc(pname, environmentName(.GlobalEnv), pname)
   }
   
+  # EF EDITS
   # Create edges from the formal to the operation node for the function
-  if (length(full.call) > 1) {
-    lapply(bindings, function(binding) {
-          formal <- binding[[2]][[1]]
-          
-          # Formal will be NULL if declared as ...  Don't create the data node in 
-          # that case.
-          if (!is.null(formal) && formal != "") {
-            formal.scope <- .ddg.get.scope(formal, calls=stack)
-            if (.ddg.data.node.exists (formal, formal.scope)) {
-              .ddg.data2proc(formal, formal.scope, pname)
-            }
-          }
-        })
-  }
-  
+  #if (length(full.call) > 1) {
+  #  lapply(bindings, function(binding) {
+  #        formal <- binding[[2]][[1]]
+  #        
+  #        # Formal will be NULL if declared as ...  Don't create the data node in 
+  #        # that case.
+  #        if (!is.null(formal) && formal != "") {
+  #          formal.scope <- .ddg.get.scope(formal, calls=stack)
+  #          if (.ddg.data.node.exists (formal, formal.scope)) {
+  #            .ddg.data2proc(formal, formal.scope, pname)
+  #          }
+  #        }
+  #      })
+  #}
+  #
   # Create control flow edge from preceding procedure node.
-  .ddg.proc2proc()
+  #.ddg.proc2proc()
   
   # create output nodes
-  
   .ddg.create.output.nodes(pname, outs.graphic, outs.data, outs.exception, 
       outs.url, outs.file, graphic.fext)
   
@@ -358,6 +446,10 @@
           value <- NULL
           .ddg.lookup.value(name, value, env)
           scope <- .ddg.get.scope(param, calls=stack)
+          
+          # EF EDITS
+          print( ".ddg.create.output.nodes" )
+          print( sys.calls() )
           
           if (value == "") {
             # Filename passed as value.
