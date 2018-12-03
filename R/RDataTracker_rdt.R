@@ -579,3 +579,16 @@
 }
 
 
+# EF EDITS
+.ddg.parse.commands.trace <- function( cmd )
+{
+  #print(cmd@abbrev)
+  #print(subset(.ddg.data.nodes(),ddg.num>0))
+
+  if(cmd@is.function.binding)
+  {
+    #trace(cmd@function.name, func.called, func.returned)
+    trace(cmd@function.name, .ddg.function, .ddg.return.value)
+    #trace(cmd@function.name, .ddg.function, .ddg.return.value, print = FALSE)
+  }
+}

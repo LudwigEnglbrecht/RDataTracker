@@ -1141,8 +1141,12 @@
           # Update so we don't set these again.
           vars.set$possible.last.writer <- vars.set$last.writer
         }
-      }
-     }
+      } # end of block: If the command does not match one of the ignored patterns.
+      
+      # EF EDITS
+      .ddg.parse.commands.trace(cmd)
+      
+     } # end of loop over cmds
 
      # Create a data node for each variable that might have been set in
      # something other than a simple assignment, with an edge from the
@@ -1150,7 +1154,7 @@
      if (!run.commands) {
        .ddg.create.data.node.for.possible.writes(vars.set, last.proc.node, env=environ)
      }
-  }
+  } # end of if num.cmds > 0 block 
 
   #print("Done with ddg.parse.commands loop")
 

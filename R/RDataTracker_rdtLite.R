@@ -45,3 +45,6 @@
       to = output.path)
   return (r.script.path)
 }
+
+# EF EDITS
+.ddg.parse.commands.trace <- function( cmd ) {}
