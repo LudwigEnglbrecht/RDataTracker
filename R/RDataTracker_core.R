@@ -676,9 +676,6 @@
       node.name <- cmd@abbrev
   }
   
-  # EF EDITS
-  print( paste("RDataTracker.R: .ddg.add.abstract.node: type =", type, ", node.name =", node.name) )
-  
   if (.ddg.debug.lib()) print(paste("Adding", node.name,  type, "node"))
   .ddg.proc.node(type, node.name, node.name, cmd = cmd, 
       scriptNum=scriptNum, startLine=startLine, startCol=startCol, 
